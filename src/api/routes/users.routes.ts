@@ -1,10 +1,13 @@
 import express, { Request, Response } from 'express';
 import { User, UserDTO } from '../../domains/users/models';
 import { v4 as uuid } from 'uuid';
+import { UserService } from '../../domains/users/services';
+import { FirestoreDB } from '../../gateways/firestore/db';
+import { ErrorType } from '../../errors/types';
 class UsersRouter {
   public router: express.Router;
   private users: User[] = [];
-  constructor() {
+  constructor(private usersService: UserService) {
     this.router = express.Router();
     this.router.get('/:id', this.getUserByID);
     this.router.post('/', this.createUser);
@@ -12,10 +15,16 @@ class UsersRouter {
     this.router.put('/:id', this.updateUser);
   }
 
-  getUserByID = (req: Request, res: Response) => {
+  getUserByID = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const [user] = this.users.filter((user) => user.id === id);
-    return res.status(200).json(user);
+    this.usersService
+      .findUserByID(id)
+      .then((user) => {
+        return res.status(200).json(user);
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   createUser = (req: Request, res: Response) => {
@@ -38,13 +47,15 @@ class UsersRouter {
   updateUser = (req: Request, res: Response) => {
     const { id } = req.params;
     const userDTO: UserDTO = req.body;
-    const user: User = {
-      id,
-      ...userDTO,
-    };
 
-    this.users = this.users.map((u) => (u.id === id ? user : u));
-    return res.status(200).json(user);
+    this.usersService
+      .updateUserByID(id, userDTO)
+      .then((user) => {
+        return res.status(200).json(user);
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   public getRouter() {
@@ -53,6 +64,8 @@ class UsersRouter {
 }
 
 export const usersRouter = () => {
-  const router = new UsersRouter();
+  const db = new FirestoreDB().firestoreDB;
+  const usersService = new UserService(db);
+  const router = new UsersRouter(usersService);
   return router.getRouter();
 };
