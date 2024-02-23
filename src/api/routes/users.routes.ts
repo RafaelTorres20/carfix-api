@@ -1,5 +1,4 @@
-import express, { Request, Response } from 'express';
-import { User, UserDTO } from '../../domains/users/models';
+import express, { Request, Response } from 'express';import { User, UserDTO } from '../../domains/users/models';
 import { v4 as uuid } from 'uuid';
 import { UserService } from '../../domains/users/services';
 import { FirestoreDB } from '../../gateways/firestore/db';
