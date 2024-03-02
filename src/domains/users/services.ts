@@ -1,46 +1,47 @@
-import { FirebaseError } from 'firebase-admin';
-import { ErrorType } from '../../errors/types';
 import { to } from '../../utils/to';
-import { User, UserDTO } from './models';
-import {
-  FirestoreResponseUpdate,
-  FirestoreResponseGet,
-} from '../../gateways/firestore/types';
+import { User, UserDTO, userDTO, user } from './models';
+import { UsersRepository } from './repository';
+import { v4 as uuid } from 'uuid';
 
 export class UserService {
-  constructor(private db: FirebaseFirestore.Firestore) {}
-
-  async findUserByID(id: string): Promise<User> {
-    try {
-      const [userDoc, error] = await to<FirestoreResponseGet, FirebaseError>(
-        this.db.collection('users').doc(id).get()
-      );
-      if (error !== null) {
-        throw { message: 'internal server error', status: 500 } as ErrorType;
-      }
-      if (!userDoc.data()) {
-        throw { message: 'not found', status: 404 } as ErrorType;
-      }
-      return userDoc.data() as User;
-    } catch (e) {
-      throw e;
+  constructor(private usersRepository: UsersRepository) {}
+  verifyID(id: string): void {
+    if (!id) {
+      throw { message: 'id is required', status: 400 };
     }
+    if (id.length !== 36) {
+      throw { message: 'id is invalid', status: 400 };
+    }
+    if (typeof id !== 'string') {
+      throw { message: 'id is invalid', status: 400 };
+    }
+  }
+  async findUserByID(id: string): Promise<User> {
+    this.verifyID(id);
+    return await this.usersRepository.find(id);
   }
 
   async updateUserByID(id: string, user: UserDTO): Promise<User> {
-    try {
-      const [updatedUser, error] = await to<FirestoreResponseUpdate, FirebaseError>(
-        this.db.collection('users').doc(id).update(user)
-      );
-      if (error !== null) {
-        throw { message: 'internal server error', status: 500 } as ErrorType;
-      }
-      if (!updatedUser) {
-        throw { message: 'not found', status: 404 } as ErrorType;
-      }
-      return updatedUser as unknown as User;
-    } catch (e) {
-      throw e;
+    this.verifyID(id);
+    const [u, error] = await to(userDTO.parseAsync(user));
+    if (error) {
+      throw { message: error.message, status: 400 };
     }
+    return await this.usersRepository.update(id, u);
+  }
+
+  async createUser(user: UserDTO): Promise<any> {
+    const id = uuid();
+    const [u, error] = await to(userDTO.parseAsync(user));
+    if (error) {
+      throw { message: error.message, status: 400 };
+    }
+    const newUser = { ...u, id };
+    return await this.usersRepository.create(newUser);
+  }
+
+  async deleteUserByUserID(userID: string): Promise<any> {
+    this.verifyID(userID);
+    return await this.usersRepository.delete(userID);
   }
 }

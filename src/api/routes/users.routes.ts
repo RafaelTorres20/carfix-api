@@ -1,8 +1,10 @@
-import express, { Request, Response } from 'express';import { User, UserDTO } from '../../domains/users/models';
+import express, { Request, Response } from 'express';
+import { User, UserDTO } from '../../domains/users/models';
 import { v4 as uuid } from 'uuid';
 import { UserService } from '../../domains/users/services';
-import { FirestoreDB } from '../../gateways/firestore/db';
+import { firestoreDB } from '../../gateways/firestore/db';
 import { ErrorType } from '../../errors/types';
+import { UsersRepository } from '../../domains/users/repository';
 class UsersRouter {
   public router: express.Router;
   private users: User[] = [];
@@ -33,14 +35,26 @@ class UsersRouter {
       ...userDTO,
     };
 
-    this.users.push(user);
-    return res.status(201).json({ id: user.id });
+    this.usersService
+      .createUser(userDTO)
+      .then((user) => {
+        return res.status(201).json({ id: user.id });
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   deleteUser = (req: Request, res: Response) => {
     const { id } = req.params;
-    this.users = this.users.filter((user) => user.id !== id);
-    return res.status(204).send();
+    this.usersService
+      .deleteUserByUserID(id)
+      .then(() => {
+        return res.status(204).send();
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   updateUser = (req: Request, res: Response) => {
@@ -63,8 +77,9 @@ class UsersRouter {
 }
 
 export const usersRouter = () => {
-  const db = new FirestoreDB().firestoreDB;
-  const usersService = new UserService(db);
+  const db = firestoreDB();
+  const usersRepository = new UsersRepository(db);
+  const usersService = new UserService(usersRepository);
   const router = new UsersRouter(usersService);
   return router.getRouter();
 };
