@@ -8,9 +8,9 @@ import { schedulesRouter } from './schedules.routes';
 
 const routes = express.Router();
 
-routes.use('/user', usersRouter());
-routes.use('/car', carsRouter());
-routes.use('/maintenence', maintenanceRouter());
+routes.use('/users', usersRouter());
+routes.use('/cars', carsRouter());
+routes.use('/maintenences', maintenanceRouter());
 routes.use('/history', maintenanceHistoryRouter());
 routes.use('/costs', costsRouter());
 routes.use('/schedules', schedulesRouter());

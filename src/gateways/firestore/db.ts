@@ -1,29 +1,30 @@
-import { initializeApp, applicationDefault, cert } from 'firebase-admin/app';
-import {
-  getFirestore,
-  Timestamp,
-  FieldValue,
-  Filter,
-  Firestore,
-} from 'firebase-admin/firestore';
-import serviceAccount from '../../../serviceAccount.json';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import serviceAccount from '../../../sa.json';
 
 export class FirestoreDB {
-  private db: Firestore;
+  private _firestoreDB: Firestore;
+
   constructor() {
-    this.db = this.init();
+    this._firestoreDB = this.initOnce();
   }
-  init() {
-    if (!this.db) {
+
+  initOnce() {
+    if (!this._firestoreDB) {
       initializeApp({
         credential: cert(serviceAccount),
       });
-      this.db = getFirestore();
+      this._firestoreDB = getFirestore();
     }
-    return this.db;
+    return this._firestoreDB;
   }
 
-  get firestoreDB() {
-    return this.db;
+  getFirestoreDB() {
+    return this._firestoreDB;
   }
 }
+const firestore = new FirestoreDB().getFirestoreDB();
+
+export const firestoreDB = () => {
+  return firestore;
+};
