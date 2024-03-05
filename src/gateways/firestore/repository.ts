@@ -13,8 +13,18 @@ export class Repository<T extends { [x: string]: any }> {
     this.db = db;
     this.collection = collection;
   }
-
-  async create(data: T): Promise<FirestoreResponseCreate> {
+  verifyID(id: string): void {
+    if (!id) {
+      throw { message: 'id is required', status: 400 };
+    }
+    if (id.length !== 36) {
+      throw { message: 'id is invalid', status: 400 };
+    }
+    if (typeof id !== 'string') {
+      throw { message: 'id is invalid', status: 400 };
+    }
+  }
+  async create(data: T): Promise<any> {
     const [newData, error] = await to<FirestoreResponseCreate, FirebaseError>(
       this.db.collection(this.collection).add(data)
     );
@@ -22,7 +32,7 @@ export class Repository<T extends { [x: string]: any }> {
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
 
-    return newData;
+    return { id: newData.id };
   }
   async update(id: string, data: any): Promise<T> {
     const [updatedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(

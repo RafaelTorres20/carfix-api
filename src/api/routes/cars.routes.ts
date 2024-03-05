@@ -1,49 +1,80 @@
 import express from 'express';
 import { Car, CarDTO } from '../../domains/cars/models';
 import { v4 as uuid } from 'uuid';
+import { CarsServices } from '../../domains/cars/services';
+import { ErrorType } from '../../errors/types';
+import { CarsRepository } from '../../domains/cars/repository';
+import { FirestoreDB, firestoreDB } from '../../gateways/firestore/db';
 class CarsRouter {
   public router: express.Router;
-  private cars: Car[] = [];
-  constructor() {
+  constructor(private carsService: CarsServices) {
     this.router = express.Router();
     this.router.get('/:id', this.getCarByID);
     this.router.post('/', this.createCar);
     this.router.delete('/:id', this.deleteCar);
     this.router.put('/:id', this.updateCar);
+    this.router.get('/user/:id', this.getCarsByUserID);
   }
+
+  getCarsByUserID = (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    this.carsService
+      .getCarsByUserID(id)
+      .then((cars) => {
+        return res.status(200).json(cars);
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
+  };
 
   getCarByID = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
-    const [car] = this.cars.filter((car) => car.id === id);
-    return res.status(200).json(car);
+    this.carsService
+      .getCarByID(id)
+      .then((car) => {
+        return res.status(200).json(car);
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   createCar = (req: express.Request, res: express.Response) => {
     const carDTO: CarDTO = req.body;
-    const id: string = uuid();
-    const car: Car = {
-      id,
-      ...carDTO,
-    };
-    this.cars.push(car);
-    return res.status(201).json({ id });
+    this.carsService
+      .createCar(carDTO)
+      .then((car) => {
+        return res.status(201).json(car);
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   deleteCar = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
-    this.cars = this.cars.filter((car) => car.id !== id);
-    return res.status(204).send();
+    this.carsService
+      .deleteCarByID(id)
+      .then(() => {
+        return res.status(204).send();
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   updateCar = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
     const carDTO: CarDTO = req.body;
-    const car: Car = {
-      id,
-      ...carDTO,
-    };
-    this.cars = this.cars.map((c) => (c.id === id ? car : c));
-    return res.status(200).json({ car });
+    this.carsService
+      .updateCarByID(id, carDTO)
+      .then((car) => {
+        return res.status(200).json(car);
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
   };
 
   public getRouter() {
@@ -52,6 +83,9 @@ class CarsRouter {
 }
 
 export const carsRouter = () => {
-  const router = new CarsRouter();
+  const db = firestoreDB();
+  const carsRepository = new CarsRepository(db);
+  const carsServices = new CarsServices(carsRepository);
+  const router = new CarsRouter(carsServices);
   return router.getRouter();
 };

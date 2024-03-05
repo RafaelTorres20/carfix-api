@@ -5,24 +5,14 @@ import { v4 as uuid } from 'uuid';
 
 export class UserService {
   constructor(private usersRepository: UsersRepository) {}
-  verifyID(id: string): void {
-    if (!id) {
-      throw { message: 'id is required', status: 400 };
-    }
-    if (id.length !== 36) {
-      throw { message: 'id is invalid', status: 400 };
-    }
-    if (typeof id !== 'string') {
-      throw { message: 'id is invalid', status: 400 };
-    }
-  }
+
   async findUserByID(id: string): Promise<User> {
-    this.verifyID(id);
+    this.usersRepository.verifyID(id);
     return await this.usersRepository.find(id);
   }
 
   async updateUserByID(id: string, user: UserDTO): Promise<User> {
-    this.verifyID(id);
+    this.usersRepository.verifyID(id);
     const [u, error] = await to(userDTO.parseAsync(user));
     if (error) {
       throw { message: error.message, status: 400 };
@@ -41,7 +31,7 @@ export class UserService {
   }
 
   async deleteUserByUserID(userID: string): Promise<any> {
-    this.verifyID(userID);
+    this.usersRepository.verifyID(userID);
     return await this.usersRepository.delete(userID);
   }
 }
