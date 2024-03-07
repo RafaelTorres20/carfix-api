@@ -30,11 +30,6 @@ class UsersRouter {
 
   createUser = (req: Request, res: Response) => {
     const userDTO: UserDTO = req.body;
-    const user: User = {
-      id: uuid(),
-      ...userDTO,
-    };
-
     this.usersService
       .createUser(userDTO)
       .then((user) => {
@@ -78,7 +73,7 @@ class UsersRouter {
 
 export const usersRouter = () => {
   const db = firestoreDB();
-  const usersRepository = new UsersRepository(db);
+  const usersRepository = new UsersRepository(db, 'users');
   const usersService = new UserService(usersRepository);
   const router = new UsersRouter(usersService);
   return router.getRouter();

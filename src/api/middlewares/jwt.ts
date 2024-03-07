@@ -1,5 +1,7 @@
 import { type Request, type Response, type NextFunction } from 'express';
 import { type JWTPayload, SignJWT, jwtVerify, type JWTVerifyResult } from 'jose';
+import dotenv from 'dotenv';
+dotenv.config();
 declare global {
   namespace Express {
     export interface Request {
@@ -9,7 +11,7 @@ declare global {
 }
 
 export interface Payload extends JWTPayload {
-  uid: number;
+  uid: string;
 }
 
 export const jwtMiddleware = (req: Request, res: Response, next: NextFunction): void => {
@@ -37,7 +39,7 @@ export const jwtMiddleware = (req: Request, res: Response, next: NextFunction): 
   }
 };
 
-export const encodeJWT = async (payload: { uid: number }): Promise<string> => {
+export const encodeJWT = async (payload: { uid: string }): Promise<string> => {
   const secretKey = process.env.JWT_SECRET_KEY;
   if (secretKey === undefined) {
     throw { status: 500, message: 'Internal server error' };

@@ -2,13 +2,46 @@ import { to } from '../../utils/to';
 import { User, UserDTO, userDTO, user } from './models';
 import { UsersRepository } from './repository';
 import { v4 as uuid } from 'uuid';
+import { compare, genSalt, hash } from 'bcrypt';
 
 export class UserService {
   constructor(private usersRepository: UsersRepository) {}
 
+  async hashPassword(password: string): Promise<string> {
+    if (password === '') {
+      throw { message: 'bad request', status: 400 };
+    }
+    try {
+      const salt = await genSalt(10);
+      const hashPass = await hash(password, salt);
+      return hashPass;
+    } catch (err) {
+      throw { message: 'Internal server error', status: 500 };
+    }
+  }
+
+  async comparePassword(password: string, hash: string): Promise<boolean> {
+    if (password === '' || hash === '') {
+      throw { message: 'bad request', status: 400 };
+    }
+    const [result, error] = await to(compare(password, hash));
+    if (error) {
+      throw { message: 'Internal server error', status: 500 };
+    }
+    return result;
+  }
+
+  findUserByEmail = async (email: string): Promise<User> => {
+    const [user, error] = await to(this.usersRepository.findBy('email', email));
+    if (error) {
+      throw { message: error.message, status: error.status };
+    }
+    return user;
+  };
+
   async findUserByID(id: string): Promise<User> {
     this.usersRepository.verifyID(id);
-    return await this.usersRepository.find(id);
+    return await this.usersRepository.findBy('id', id);
   }
 
   async updateUserByID(id: string, user: UserDTO): Promise<User> {
@@ -24,10 +57,12 @@ export class UserService {
     const id = uuid();
     const [u, error] = await to(userDTO.parseAsync(user));
     if (error) {
-      throw { message: error.message, status: 400 };
+      throw { message: 'bad request', status: 400 };
     }
-    const newUser = { ...u, id };
-    return await this.usersRepository.create(newUser);
+    const hashPass = await this.hashPassword(u.password);
+    const newUser = { ...u, id, password: hashPass };
+    await this.usersRepository.create(newUser);
+    return { id };
   }
 
   async deleteUserByUserID(userID: string): Promise<any> {

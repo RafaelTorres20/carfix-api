@@ -24,7 +24,7 @@ export class Repository<T extends { [x: string]: any }> {
       throw { message: 'id is invalid', status: 400 };
     }
   }
-  async create(data: T): Promise<any> {
+  async create(data: T): Promise<{ id: string }> {
     const [newData, error] = await to<FirestoreResponseCreate, FirebaseError>(
       this.db.collection(this.collection).add(data)
     );
@@ -56,7 +56,6 @@ export class Repository<T extends { [x: string]: any }> {
     const [data, error] = await to<FirestoreResponseGet, FirebaseError>(
       this.db.collection(this.collection).doc(id).get()
     );
-    console.log(data.data, error);
     if (error !== null) {
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
@@ -65,6 +64,18 @@ export class Repository<T extends { [x: string]: any }> {
     }
     return data.data() as unknown as T;
   }
+  findBy = async (field: string, value: string): Promise<T> => {
+    const [user, error] = await to(
+      this.db.collection(this.collection).where(field, '==', value).get()
+    );
+    if (error) {
+      throw { message: 'internal server error', status: 500 };
+    }
+    if (user.empty) {
+      throw { message: 'bad request', status: 400 };
+    }
+    return user.docs[0].data() as T;
+  };
   async findAll() {
     const [data, error] = await to<FirebaseResponseFindAll, FirebaseError>(
       this.db.collection(this.collection).get()

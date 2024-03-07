@@ -13,5 +13,30 @@ export const user = z.object({
 export const userDTO = z.object({
   name: z.string(),
   email: z.string(),
-  password: z.string(),
+  password: z
+    .string()
+    .min(8, 'bad request')
+    .refine((password) => {
+      // Pelo menos uma letra maiúscula
+      if (!/[A-Z]/.test(password)) {
+        throw new Error('bad request');
+      }
+
+      // Pelo menos uma letra minúscula
+      if (!/[a-z]/.test(password)) {
+        throw new Error('bad request');
+      }
+
+      // Pelo menos um número
+      if (!/[0-9]/.test(password)) {
+        throw new Error('bad request');
+      }
+
+      // Pelo menos um caractere especial
+      if (!/[$&+,:;=?@#|'<>.^*()%!-]/.test(password)) {
+        throw new Error('bad request');
+      }
+
+      return true;
+    }),
 });
