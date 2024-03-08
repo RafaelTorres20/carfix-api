@@ -8,11 +8,13 @@ export const user = z.object({
   name: z.string(),
   email: z.string(),
   password: z.string(),
+  jwt: z.string(),
 });
 
 export const userDTO = z.object({
   name: z.string(),
   email: z.string(),
+  jwt: z.string().nullable().optional(),
   password: z
     .string()
     .min(8, 'bad request')

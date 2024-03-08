@@ -34,9 +34,11 @@ export class Repository<T extends { [x: string]: any }> {
 
     return { id: newData.id };
   }
-  async update(id: string, data: any): Promise<T> {
+  async update(field: string, id: string, data: any): Promise<T> {
     const [updatedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(
-      this.db.collection(this.collection).doc(id).update(data)
+      (
+        await this.db.collection(this.collection).where(field, '==', id).get()
+      ).docs[0].ref.update(data)
     );
     if (error !== null) {
       throw { message: 'internal server error', status: 500 } as ErrorType;

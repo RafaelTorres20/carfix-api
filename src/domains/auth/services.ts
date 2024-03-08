@@ -3,10 +3,10 @@ import { v4 as uuid } from 'uuid';
 import { UsersRepository } from '../users/repository';
 import { IAuth } from './interfaces';
 import { UserService } from '../users/services';
-import { encodeJWT } from '../../api/middlewares/jwt';
+import { JWT } from '../../api/middlewares/jwt';
 
 export class AuthServices implements IAuth {
-  constructor(private usersServices: UserService) {}
+  constructor(private usersServices: UserService, private jwt: JWT) {}
   login = async (email: string, password: string): Promise<string> => {
     const user = await this.usersServices.findUserByEmail(email);
     const isPasswordCorrect = await this.usersServices.comparePassword(
@@ -16,7 +16,13 @@ export class AuthServices implements IAuth {
     if (!isPasswordCorrect) {
       throw { message: 'bad request', status: 400 };
     }
-    const token = await encodeJWT({ uid: user.id });
+    const token = await this.jwt.encodeJWT({ uid: user.id });
+    const [, error] = await to(
+      this.usersServices.updateUserByID(user.id, { ...user, jwt: token })
+    );
+    if (error) {
+      throw { message: 'internal server error', status: 500 };
+    }
     return token;
   };
 }

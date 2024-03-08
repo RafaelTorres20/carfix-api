@@ -6,6 +6,7 @@ import { AuthServices } from '../../domains/auth/services';
 import { UserService } from '../../domains/users/services';
 import { UsersRepository } from '../../domains/users/repository';
 import { ErrorType } from '../../errors/types';
+import { JWT } from '../middlewares/jwt';
 
 class AuthRouter {
   public router: express.Router;
@@ -39,7 +40,8 @@ export const authRouter = () => {
   const db = firestoreDB();
   const usersepository = new UsersRepository(db, 'users');
   const usersServices = new UserService(usersepository);
-  const authServices = new AuthServices(usersServices);
+  const jwt = new JWT(usersServices);
+  const authServices = new AuthServices(usersServices, jwt);
   const router = new AuthRouter(authServices);
   return router.getRouter();
 };

@@ -3,6 +3,8 @@ import { User, UserDTO, userDTO, user } from './models';
 import { UsersRepository } from './repository';
 import { v4 as uuid } from 'uuid';
 import { compare, genSalt, hash } from 'bcrypt';
+import { jwt } from '../../api/middlewares/jwt';
+import { ZodError } from 'zod';
 
 export class UserService {
   constructor(private usersRepository: UsersRepository) {}
@@ -18,6 +20,14 @@ export class UserService {
     } catch (err) {
       throw { message: 'Internal server error', status: 500 };
     }
+  }
+
+  async jwtExists(token: string): Promise<boolean> {
+    const [user, error] = await to(this.usersRepository.findBy('jwt', token));
+    if (error) {
+      throw { message: 'internal server error', status: 500 };
+    }
+    return user?.jwt === token;
   }
 
   async comparePassword(password: string, hash: string): Promise<boolean> {
@@ -41,16 +51,17 @@ export class UserService {
 
   async findUserByID(id: string): Promise<User> {
     this.usersRepository.verifyID(id);
-    return await this.usersRepository.findBy('id', id);
+    const user = await this.usersRepository.findBy('id', id);
+    return user;
   }
 
   async updateUserByID(id: string, user: UserDTO): Promise<User> {
     this.usersRepository.verifyID(id);
-    const [u, error] = await to(userDTO.parseAsync(user));
+    const [u, error] = await to<UserDTO, ZodError>(userDTO.parseAsync(user));
     if (error) {
-      throw { message: error.message, status: 400 };
+      throw { message: 'bad request', status: 400 };
     }
-    return await this.usersRepository.update(id, u);
+    return await this.usersRepository.update('id', id, u);
   }
 
   async createUser(user: UserDTO): Promise<any> {
@@ -60,7 +71,8 @@ export class UserService {
       throw { message: 'bad request', status: 400 };
     }
     const hashPass = await this.hashPassword(u.password);
-    const newUser = { ...u, id, password: hashPass };
+    const token = await jwt().encodeJWT({ uid: id });
+    const newUser: User = { ...u, id, password: hashPass, jwt: token };
     await this.usersRepository.create(newUser);
     return { id };
   }

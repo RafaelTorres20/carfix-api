@@ -7,7 +7,6 @@ import { ErrorType } from '../../errors/types';
 import { UsersRepository } from '../../domains/users/repository';
 class UsersRouter {
   public router: express.Router;
-  private users: User[] = [];
   constructor(private usersService: UserService) {
     this.router = express.Router();
     this.router.get('/:id', this.getUserByID);
@@ -55,7 +54,6 @@ class UsersRouter {
   updateUser = (req: Request, res: Response) => {
     const { id } = req.params;
     const userDTO: UserDTO = req.body;
-
     this.usersService
       .updateUserByID(id, userDTO)
       .then((user) => {

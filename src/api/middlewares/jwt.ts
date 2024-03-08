@@ -1,6 +1,10 @@
 import { type Request, type Response, type NextFunction } from 'express';
 import { type JWTPayload, SignJWT, jwtVerify, type JWTVerifyResult } from 'jose';
 import dotenv from 'dotenv';
+import { ErrorType } from '../../errors/types';
+import { UserService } from '../../domains/users/services';
+import { firestoreDB } from '../../gateways/firestore/db';
+import { UsersRepository } from '../../domains/users/repository';
 dotenv.config();
 declare global {
   namespace Express {
@@ -14,60 +18,79 @@ export interface Payload extends JWTPayload {
   uid: string;
 }
 
-export const jwtMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  const authorization = req.headers.authorization;
-  if (authorization === undefined) {
-    res.status(401).send('Unauthorized');
-    return;
+export class JWT {
+  private secretKey: string | undefined;
+  constructor(private userService: UserService) {
+    this.secretKey = process.env.JWT_SECRET_KEY;
+    if (this.secretKey === undefined) {
+      throw { status: 500, message: 'Internal server error' };
+    }
   }
-  const token = authorization.split(' ')[1];
-  if (token === undefined) {
-    res.status(401).send('Unauthorized');
-    return;
-  }
-  try {
-    decodeJWT(token)
-      .then((payload) => {
-        req.payload = payload.payload;
-        next();
+  encodeJWT = async (payload: { uid: string }): Promise<string> => {
+    const secretKey = process.env.JWT_SECRET_KEY;
+    if (secretKey === undefined) {
+      throw { status: 500, message: 'Internal server error' };
+    }
+    const secretKeyUint8Array = new TextEncoder().encode(secretKey);
+    return await new SignJWT(payload)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('24h')
+      .sign(secretKeyUint8Array);
+  };
+
+  decodeJWT = async (token: string): Promise<JWTVerifyResult<Payload>> => {
+    const secretKey = process.env.JWT_SECRET_KEY;
+    if (secretKey === undefined) {
+      throw { status: 500, message: 'Internal server error' };
+    }
+    const secretKeyUint8Array = new TextEncoder().encode(secretKey);
+    const verified = await jwtVerify<Payload>(token, secretKeyUint8Array, {
+      algorithms: ['HS256'],
+    });
+    if (verified === undefined) {
+      throw { status: 500, message: 'Internal server error' };
+    }
+    if (verified.payload.uid === undefined) {
+      throw { status: 500, message: 'Internal server error' };
+    }
+    return verified;
+  };
+
+  public middleware = (req: Request, res: Response, next: NextFunction): any => {
+    const authorization = req.headers.authorization;
+    if (authorization === undefined) {
+      return res.status(401).send('Unauthorized');
+    }
+    const token = authorization.split(' ')[1];
+    if (token === undefined) {
+      return res.status(401).send('Unauthorized');
+    }
+    this.userService
+      .jwtExists(token)
+      .then((exists) => {
+        if (!exists) {
+          return res.status(401).send('Unauthorized');
+        }
+        this.decodeJWT(token)
+          .then((payload) => {
+            req.payload = payload.payload;
+            next();
+          })
+          .catch((error: ErrorType) => {
+            return res.status(403).send('Forbidden');
+          });
       })
-      .catch((error) => {
-        res.status(403).send('Forbidden');
+      .catch((error: ErrorType) => {
+        return res.status(403).json({ message: 'Forbidden', status: 403 });
       });
-  } catch (error) {
-    res.status(403).send('Forbidden');
-  }
-};
+  };
+}
 
-export const encodeJWT = async (payload: { uid: string }): Promise<string> => {
-  const secretKey = process.env.JWT_SECRET_KEY;
-  if (secretKey === undefined) {
-    throw { status: 500, message: 'Internal server error' };
-  }
-  const secretKeyUint8Array = new TextEncoder().encode(secretKey);
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('24h')
-    .sign(secretKeyUint8Array);
+export const jwt = () => {
+  const db = firestoreDB();
+  const usersRepository = new UsersRepository(db, 'users');
+  const userService = new UserService(usersRepository);
+  const jwt = new JWT(userService);
+  return jwt;
 };
-
-export const decodeJWT = async (token: string): Promise<JWTVerifyResult<Payload>> => {
-  const secretKey = process.env.JWT_SECRET_KEY;
-  if (secretKey === undefined) {
-    throw { status: 500, message: 'Internal server error' };
-  }
-  const secretKeyUint8Array = new TextEncoder().encode(secretKey);
-  const verified = await jwtVerify<Payload>(token, secretKeyUint8Array, {
-    algorithms: ['HS256'],
-  });
-  if (verified === undefined) {
-    throw new Error('Payload is missing in JWT');
-  }
-  if (verified.payload.uid === undefined) {
-    throw new Error('UID is missing in JWT payload');
-  }
-  return verified;
-};
-
-// TODO: add blacklist and refresh token
