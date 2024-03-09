@@ -1,10 +1,9 @@
 import express from 'express';
-import { Car, CarDTO } from '../../domains/cars/models';
-import { v4 as uuid } from 'uuid';
+import { CarDTO } from '../../domains/cars/models';
 import { CarsServices } from '../../domains/cars/services';
 import { ErrorType } from '../../errors/types';
 import { CarsRepository } from '../../domains/cars/repository';
-import { FirestoreDB, firestoreDB } from '../../gateways/firestore/db';
+import { firestoreDB } from '../../gateways/firestore/db';
 class CarsRouter {
   public router: express.Router;
   constructor(private carsService: CarsServices) {
@@ -13,6 +12,7 @@ class CarsRouter {
     this.router.post('/', this.createCar);
     this.router.delete('/:id', this.deleteCar);
     this.router.put('/:id', this.updateCar);
+    this.router.patch('/:id', this.updateActualKm);
     this.router.get('/user/:id', this.getCarsByUserID);
   }
 
@@ -58,6 +58,19 @@ class CarsRouter {
       .deleteCarByID(id)
       .then(() => {
         return res.status(204).send();
+      })
+      .catch((error: ErrorType) => {
+        return res.status(error.status).json(error);
+      });
+  };
+
+  updateActualKm = (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    const { actualKm } = req.body;
+    this.carsService
+      .updateActualKm(id, actualKm)
+      .then((car) => {
+        return res.status(200).json(car);
       })
       .catch((error: ErrorType) => {
         return res.status(error.status).json(error);

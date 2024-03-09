@@ -45,9 +45,11 @@ export class Repository<T extends { [x: string]: any }> {
     }
     return updatedData as unknown as T;
   }
-  async delete(id: string): Promise<FirestoreResponseUpdate> {
-    const [deletedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(
-      this.db.collection(this.collection).doc(id).delete()
+  async delete(field: string, id: string): Promise<FirestoreResponseUpdate> {
+    const [deletedData, error] = await to<any, FirebaseError>(
+      (
+        await this.db.collection(this.collection).where(field, '==', id).get()
+      ).docs[0].ref.delete()
     );
     if (error !== null) {
       throw { message: 'internal server error', status: 500 } as ErrorType;
@@ -77,6 +79,22 @@ export class Repository<T extends { [x: string]: any }> {
       throw { message: 'bad request', status: 400 };
     }
     return user.docs[0].data() as T;
+  };
+  findAllBy = async (field: string, value: string): Promise<T[]> => {
+    const [data, error] = await to(
+      this.db.collection(this.collection).where(field, '==', value).get()
+    );
+    if (error) {
+      throw { message: 'internal server error', status: 500 };
+    }
+    if (data.empty) {
+      throw { message: 'not found', status: 404 };
+    }
+    const result: T[] = [];
+    data.forEach((doc) => {
+      result.push(doc.data() as T);
+    });
+    return result;
   };
   async findAll() {
     const [data, error] = await to<FirebaseResponseFindAll, FirebaseError>(

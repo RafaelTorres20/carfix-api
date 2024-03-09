@@ -79,6 +79,6 @@ export class UserService {
 
   async deleteUserByUserID(userID: string): Promise<any> {
     this.usersRepository.verifyID(userID);
-    return await this.usersRepository.delete(userID);
+    return await this.usersRepository.delete('id', userID);
   }
 }

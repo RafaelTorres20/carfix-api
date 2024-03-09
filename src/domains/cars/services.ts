@@ -21,22 +21,27 @@ export class CarsServices {
     return this.carsRepository.create(newCar);
   };
 
+  updateActualKm = async (id: string, actualKm: number) => {
+    this.carsRepository.verifyID(id);
+    return this.carsRepository.update('id', id, { actualKm });
+  };
+
   updateCarByID = async (id: string, car: CarDTO) => {
     this.carsRepository.verifyID(id);
     const [c, error] = await to(carDTO.parseAsync(car));
     if (error) {
       throw { message: error.message, status: 400 };
     }
-    return this.carsRepository.update(id, c);
+    return this.carsRepository.update('id', id, c);
   };
 
   deleteCarByID = async (id: string) => {
     this.carsRepository.verifyID(id);
-    return this.carsRepository.delete(id);
+    return this.carsRepository.delete('id', id);
   };
 
   getCarByID = async (id: string) => {
     this.carsRepository.verifyID(id);
-    return this.carsRepository.find(id);
+    return this.carsRepository.findBy('id', id);
   };
 }

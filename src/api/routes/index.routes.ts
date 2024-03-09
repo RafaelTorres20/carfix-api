@@ -13,7 +13,7 @@ const routes = express.Router();
 // private routes
 routes.use('/users', jwt().middleware, usersRouter());
 routes.use('/cars', jwt().middleware, carsRouter());
-routes.use('/maintenences', jwt().middleware, maintenanceRouter());
+routes.use('/maintenances', jwt().middleware, maintenanceRouter());
 routes.use('/history', jwt().middleware, maintenanceHistoryRouter());
 routes.use('/costs', jwt().middleware, costsRouter());
 routes.use('/schedules', jwt().middleware, schedulesRouter());
