@@ -3,7 +3,7 @@ import { CostDTO, Cost, costDTO } from './models';
 import { CostRepository } from './repository';
 import { to } from '../../utils/to';
 import { v4 as uuid } from 'uuid';
-export class MaintenanceServices implements ICost {
+export class CostServices implements ICost {
   constructor(private costRepository: CostRepository) {}
 
   createCost = async (cost: CostDTO): Promise<{ id: string }> => {
@@ -14,7 +14,8 @@ export class MaintenanceServices implements ICost {
       throw { message: 'bad request', status: 400 };
     }
     const newCost = { ...c, id };
-    return this.costRepository.create(newCost);
+    await this.costRepository.create(newCost);
+    return { id };
   };
   updateCost = async (id: string, cost: CostDTO): Promise<Cost> => {
     this.costRepository.verifyID(id);
@@ -33,5 +34,10 @@ export class MaintenanceServices implements ICost {
   getCostsByCarID = async (id: string): Promise<Cost[]> => {
     this.costRepository.verifyID(id);
     return this.costRepository.getCostsByCarID(id);
+  };
+
+  getCostsByMonthAndYear = async (carID: string, date: Date): Promise<Cost[]> => {
+    this.costRepository.verifyID(carID);
+    return this.costRepository.getCostsByMonthAndYear(carID, date);
   };
 }

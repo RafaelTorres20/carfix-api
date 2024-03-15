@@ -1,5 +1,4 @@
-import { to } from '../../utils/to';
-import { IMaintenance } from './interfaces';
+import { to } from '../../utils/to';import { IMaintenance } from './interfaces';
 import { MaintenanceDTO, Maintenance, maintenanceDTO } from './models';
 import { v4 as uuid } from 'uuid';
 import { MaintenanceRepository } from './repository';
@@ -16,7 +15,8 @@ export class MaintenanceServices implements IMaintenance {
       throw { message: 'bad request', status: 400 };
     }
     const newMaintenance = { ...m, id };
-    return this.maintenanceRepository.create(newMaintenance);
+    await this.maintenanceRepository.create(newMaintenance);
+    return { id };
   };
 
   updateMaintenance = async (

@@ -1,5 +1,4 @@
-import { FirebaseError } from 'firebase-admin';
-import { to } from '../../utils/to';
+import { FirebaseError } from 'firebase-admin';import { to } from '../../utils/to';
 import {
   FirebaseResponseFindAll,
   FirestoreResponseCreate,
@@ -76,7 +75,7 @@ export class Repository<T extends { [x: string]: any }> {
     }
     return data.data() as unknown as T;
   }
-  findBy = async (field: string, value: string): Promise<T> => {
+  async findBy(field: string, value: string): Promise<T> {
     const [user, error] = await to(
       this.db.collection(this.collection).where(field, '==', value).get()
     );
@@ -89,8 +88,8 @@ export class Repository<T extends { [x: string]: any }> {
       throw { message: 'bad request', status: 400 };
     }
     return user.docs[0].data() as T;
-  };
-  findAllBy = async (field: string, value: string): Promise<T[]> => {
+  }
+  async findAllBy(field: string, value: string): Promise<T[]> {
     const [data, error] = await to(
       this.db.collection(this.collection).where(field, '==', value).get()
     );
@@ -107,7 +106,7 @@ export class Repository<T extends { [x: string]: any }> {
       result.push(doc.data() as T);
     });
     return result;
-  };
+  }
   async findAll() {
     const [data, error] = await to<FirebaseResponseFindAll, FirebaseError>(
       this.db.collection(this.collection).get()
@@ -121,5 +120,35 @@ export class Repository<T extends { [x: string]: any }> {
       throw { message: 'not found', status: 404 } as ErrorType;
     }
     return data;
+  }
+
+  async findAllByDateAndID(
+    fieldID: string,
+    id: string,
+    fieldDate: string,
+    minDate: Date,
+    maxDate: Date
+  ): Promise<T[]> {
+    const [data, error] = await to(
+      this.db
+        .collection(this.collection)
+        .where(fieldID, '==', id)
+        .where(fieldDate, '>=', minDate)
+        .where(fieldDate, '<=', maxDate)
+        .get()
+    );
+    if (error) {
+      console.log(error);
+      throw { message: 'internal server error', status: 500 };
+    }
+    if (data.empty) {
+      console.log('not found');
+      throw { message: 'not found', status: 404 };
+    }
+    const result: T[] = [];
+    data.forEach((doc) => {
+      result.push(doc.data() as T);
+    });
+    return result;
   }
 }

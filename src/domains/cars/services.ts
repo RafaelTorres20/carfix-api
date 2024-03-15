@@ -1,5 +1,4 @@
-import { to } from '../../utils/to';
-import { CarDTO, carDTO, car, Car } from './models';
+import { to } from '../../utils/to';import { CarDTO, carDTO, car, Car } from './models';
 import { CarsRepository } from './repository';
 import { v4 as uuid } from 'uuid';
 
@@ -19,7 +18,8 @@ export class CarsServices {
       throw { message: error.message, status: 400 };
     }
     const newCar = { ...c, id };
-    return this.carsRepository.create(newCar);
+    await this.carsRepository.create(newCar);
+    return { id };
   };
 
   updateCurrentMileage = async (id: string, currentMileage: number) => {

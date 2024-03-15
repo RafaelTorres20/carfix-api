@@ -20,7 +20,8 @@ export class MaintenanceServices implements IMaintenanceHistory {
       throw { message: 'bad request', status: 400 };
     }
     const newMaintenanceHistory = { ...m, id };
-    return this.maintenanceHistoryRepository.create(newMaintenanceHistory);
+    await this.maintenanceHistoryRepository.create(newMaintenanceHistory);
+    return { id };
   };
   updateMaintenanceHistory = async (
     id: string,
