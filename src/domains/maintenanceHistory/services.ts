@@ -8,7 +8,7 @@ import { MaintenanceHistoryRepository } from './repository';
 import { to } from '../../utils/to';
 import { v4 as uuid } from 'uuid';
 
-export class MaintenanceServices implements IMaintenanceHistory {
+export class MaintenanceHistoryServices implements IMaintenanceHistory {
   constructor(private maintenanceHistoryRepository: MaintenanceHistoryRepository) {}
   createMaintenanceHistory = async (
     maintenanceHistory: MaintenanceHistoryDTO
