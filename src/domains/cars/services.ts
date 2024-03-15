@@ -15,15 +15,16 @@ export class CarsServices {
     const id = uuid();
     const [c, error] = await to(carDTO.parseAsync(car));
     if (error) {
+      console.log(error);
       throw { message: error.message, status: 400 };
     }
     const newCar = { ...c, id };
     return this.carsRepository.create(newCar);
   };
 
-  updateActualKm = async (id: string, actualKm: number) => {
+  updateCurrentMileage = async (id: string, currentMileage: number) => {
     this.carsRepository.verifyID(id);
-    return this.carsRepository.update('id', id, { actualKm });
+    return this.carsRepository.update('id', id, { currentMileage });
   };
 
   updateCarByID = async (id: string, car: CarDTO) => {

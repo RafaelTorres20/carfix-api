@@ -1,5 +1,4 @@
 import z from 'zod';
-
 export type User = z.infer<typeof user>;
 export type UserDTO = z.infer<typeof userDTO>;
 
@@ -21,21 +20,25 @@ export const userDTO = z.object({
     .refine((password) => {
       // Pelo menos uma letra maiúscula
       if (!/[A-Z]/.test(password)) {
+        console.log('bad request');
         throw new Error('bad request');
       }
 
       // Pelo menos uma letra minúscula
       if (!/[a-z]/.test(password)) {
+        console.log('bad request');
         throw new Error('bad request');
       }
 
       // Pelo menos um número
       if (!/[0-9]/.test(password)) {
+        console.log('bad request');
         throw new Error('bad request');
       }
 
       // Pelo menos um caractere especial
       if (!/[$&+,:;=?@#|'<>.^*()%!-]/.test(password)) {
+        console.log('bad request');
         throw new Error('bad request');
       }
 

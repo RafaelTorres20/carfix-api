@@ -1,5 +1,4 @@
-import express from 'express';
-import { MaintenanceServices } from '../../domains/maintenance/services';
+import express from 'express';import { MaintenanceServices } from '../../domains/maintenance/services';
 import { ErrorType } from '../../errors/types';
 import { MaintenanceRepository } from '../../domains/maintenance/repository';
 import { firestoreDB } from '../../gateways/firestore/db';
@@ -17,7 +16,7 @@ class MaintenanceRouter {
   getMaintenancesByUserID = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
     this.maintenanceServices
-      .getMaintenancesByUserID(id)
+      .getMaintenancesByCarID(id)
       .then((maintenances) => {
         return res.status(200).json(maintenances);
       })

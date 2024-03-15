@@ -1,5 +1,4 @@
-import { type Request, type Response, type NextFunction } from 'express';
-import { type JWTPayload, SignJWT, jwtVerify, type JWTVerifyResult } from 'jose';
+import { type Request, type Response, type NextFunction } from 'express';import { type JWTPayload, SignJWT, jwtVerify, type JWTVerifyResult } from 'jose';
 import dotenv from 'dotenv';
 import { ErrorType } from '../../errors/types';
 import { UserService } from '../../domains/users/services';
@@ -23,12 +22,14 @@ export class JWT {
   constructor(private userService: UserService) {
     this.secretKey = process.env.JWT_SECRET_KEY;
     if (this.secretKey === undefined) {
+      console.log('JWT_SECRET_KEY is not defined');
       throw { status: 500, message: 'Internal server error' };
     }
   }
   encodeJWT = async (payload: { uid: string }): Promise<string> => {
     const secretKey = process.env.JWT_SECRET_KEY;
     if (secretKey === undefined) {
+      console.log('JWT_SECRET_KEY is not defined');
       throw { status: 500, message: 'Internal server error' };
     }
     const secretKeyUint8Array = new TextEncoder().encode(secretKey);
@@ -42,6 +43,7 @@ export class JWT {
   decodeJWT = async (token: string): Promise<JWTVerifyResult<Payload>> => {
     const secretKey = process.env.JWT_SECRET_KEY;
     if (secretKey === undefined) {
+      console.log('JWT_SECRET_KEY is not defined');
       throw { status: 500, message: 'Internal server error' };
     }
     const secretKeyUint8Array = new TextEncoder().encode(secretKey);
@@ -49,9 +51,11 @@ export class JWT {
       algorithms: ['HS256'],
     });
     if (verified === undefined) {
+      console.log('verified is not defined');
       throw { status: 500, message: 'Internal server error' };
     }
     if (verified.payload.uid === undefined) {
+      console.log('uid is not defined');
       throw { status: 500, message: 'Internal server error' };
     }
     return verified;

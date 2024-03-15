@@ -12,7 +12,7 @@ class CarsRouter {
     this.router.post('/', this.createCar);
     this.router.delete('/:id', this.deleteCar);
     this.router.put('/:id', this.updateCar);
-    this.router.patch('/:id', this.updateActualKm);
+    this.router.patch('/:id', this.updateCurrentMileage);
     this.router.get('/user/:id', this.getCarsByUserID);
   }
 
@@ -64,11 +64,11 @@ class CarsRouter {
       });
   };
 
-  updateActualKm = (req: express.Request, res: express.Response) => {
+  updateCurrentMileage = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
-    const { actualKm } = req.body;
+    const { currentMileage } = req.body;
     this.carsService
-      .updateActualKm(id, actualKm)
+      .updateCurrentMileage(id, currentMileage)
       .then((car) => {
         return res.status(200).json(car);
       })

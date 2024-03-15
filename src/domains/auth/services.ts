@@ -14,6 +14,7 @@ export class AuthServices implements IAuth {
       user.password
     );
     if (!isPasswordCorrect) {
+      console.log('password is incorrect');
       throw { message: 'bad request', status: 400 };
     }
     const token = await this.jwt.encodeJWT({ uid: user.id });
@@ -21,6 +22,7 @@ export class AuthServices implements IAuth {
       this.usersServices.updateUserByID(user.id, { ...user, jwt: token })
     );
     if (error) {
+      console.log(error);
       throw { message: 'internal server error', status: 500 };
     }
     return token;
