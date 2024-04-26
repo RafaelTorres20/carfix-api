@@ -1,4 +1,5 @@
-import express from 'express';import { MaintenanceServices } from '../../domains/maintenance/services';
+import express from 'express';
+import { MaintenanceServices } from '../../domains/maintenance/services';
 import { ErrorType } from '../../errors/types';
 import { MaintenanceRepository } from '../../domains/maintenance/repository';
 import { firestoreDB } from '../../gateways/firestore/db';
@@ -7,13 +8,13 @@ class MaintenanceRouter {
   public router: express.Router;
   constructor(private maintenanceServices: MaintenanceServices) {
     this.router = express.Router();
-    this.router.get('/:id', this.getMaintenancesByUserID);
+    this.router.get('/:id', this.getMaintenancesByCarID);
     this.router.post('/', this.createMaintenance);
     this.router.delete('/:id', this.deleteMaintenance);
     this.router.put('/:id', this.updateMaintenance);
   }
 
-  getMaintenancesByUserID = (req: express.Request, res: express.Response) => {
+  getMaintenancesByCarID = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
     this.maintenanceServices
       .getMaintenancesByCarID(id)

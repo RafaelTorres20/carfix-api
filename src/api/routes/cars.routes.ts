@@ -4,12 +4,20 @@ import { CarsServices } from '../../domains/cars/services';
 import { ErrorType } from '../../errors/types';
 import { CarsRepository } from '../../domains/cars/repository';
 import { firestoreDB } from '../../gateways/firestore/db';
+import Multer from 'multer';
+
+const multer = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
+  },
+});
 class CarsRouter {
   public router: express.Router;
   constructor(private carsService: CarsServices) {
     this.router = express.Router();
     this.router.get('/:id', this.getCarByID);
-    this.router.post('/', this.createCar);
+    this.router.post('/', multer.single('photo'), this.createCar);
     this.router.delete('/:id', this.deleteCar);
     this.router.put('/:id', this.updateCar);
     this.router.patch('/:id', this.updateCurrentMileage);
@@ -42,6 +50,7 @@ class CarsRouter {
 
   createCar = (req: express.Request, res: express.Response) => {
     const carDTO: CarDTO = req.body;
+    console.log(carDTO.photo);
     this.carsService
       .createCar(carDTO)
       .then((car) => {

@@ -6,6 +6,7 @@ export type MaintenanceDTO = z.infer<typeof maintenanceDTO>;
 export const maintenanceDTO = z.object({
   name: z.string(),
   nextMileage: z.number(),
+  lastMileage: z.number(),
   carID: z.string(),
 });
 
@@ -14,4 +15,5 @@ export const maintenance = z.object({
   carID: z.string(),
   name: z.string(),
   nextMileage: z.number(),
+  lastMileage: z.number(),
 });

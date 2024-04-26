@@ -1,4 +1,5 @@
-import { Repository } from '../../gateways/firestore/repository';import { to } from '../../utils/to';
+import { Repository } from '../../gateways/firestore/repository';
+import { to } from '../../utils/to';
 import { Maintenance } from './models';
 
 export class MaintenanceRepository extends Repository<Maintenance> {
@@ -8,6 +9,10 @@ export class MaintenanceRepository extends Repository<Maintenance> {
   getMaintenancesByCarID = async (id: string): Promise<Maintenance[]> => {
     this.verifyID(id);
     const [data, error] = await to(this.findAllBy('carID', id));
+    if (error?.status === 404) {
+      console.log(error);
+      throw { message: 'not found', status: error.status };
+    }
     if (error) {
       console.log(error);
       throw { message: 'internal server error', status: 500 };
