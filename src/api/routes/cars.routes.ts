@@ -5,7 +5,9 @@ import { ErrorType } from '../../errors/types';
 import { CarsRepository } from '../../domains/cars/repository';
 import { firestoreDB } from '../../gateways/firestore/db';
 import Multer from 'multer';
-
+import { Storage } from '@google-cloud/storage';
+import bucket from '../../../bucket.json';
+import path from 'path';
 const multer = Multer({
   storage: Multer.memoryStorage(),
   limits: {
@@ -50,9 +52,12 @@ class CarsRouter {
 
   createCar = (req: express.Request, res: express.Response) => {
     const carDTO: CarDTO = req.body;
-    console.log(carDTO.photo);
+    const file = req.file;
+    if (req.file) {
+      carDTO.photo = req.file.originalname;
+    }
     this.carsService
-      .createCar(carDTO)
+      .createCar(carDTO, file)
       .then((car) => {
         return res.status(201).json(car);
       })
@@ -107,7 +112,11 @@ class CarsRouter {
 export const carsRouter = () => {
   const db = firestoreDB();
   const carsRepository = new CarsRepository(db);
-  const carsServices = new CarsServices(carsRepository);
+  const storage = new Storage({
+    projectId: 'endless-terra-421507',
+    keyFilename: path.join(__dirname, '../../../bucket.json'),
+  });
+  const carsServices = new CarsServices(carsRepository, storage);
   const router = new CarsRouter(carsServices);
   return router.getRouter();
 };
