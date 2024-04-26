@@ -39,22 +39,27 @@ export class Repository<T extends { [x: string]: any }> {
     return { id: newData.id };
   }
   async update(field: string, id: string, data: any): Promise<T> {
-    const [updatedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(
-      (
-        await this.db.collection(this.collection).where(field, '==', id).get()
-      ).docs[0].ref.update(data)
-    );
-    if (error !== null) {
-      console.log(error);
+    try {
+      const [updatedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(
+        (
+          await this.db.collection(this.collection).where(field, '==', id).get()
+        ).docs[0].ref.update(data)
+      );
+      if (error) {
+        console.log(error);
+        throw { message: 'internal server error', status: 500 } as ErrorType;
+      }
+      return updatedData as unknown as T;
+    } catch (e) {
+      console.log(e);
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
-    return updatedData as unknown as T;
   }
   async delete(field: string, id: string): Promise<FirestoreResponseUpdate> {
     const [deletedData, error] = await to<any, FirebaseError>(
       (
         await this.db.collection(this.collection).where(field, '==', id).get()
-      ).docs[0].ref.delete()
+      ).docs[0]?.ref.delete()
     );
     if (error !== null) {
       console.log(error);

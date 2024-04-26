@@ -14,6 +14,7 @@ export class CarsServices {
         const blobStream = blob.createWriteStream();
 
         blobStream.on('error', (err) => {
+          console.log('error', err);
           reject(err);
         });
 
@@ -23,6 +24,7 @@ export class CarsServices {
             .file(time + file.originalname)
             .exists();
           if (!f) {
+            console.log('File not found');
             reject(new Error('File not found'));
           }
           const url = await this.storage
@@ -37,6 +39,7 @@ export class CarsServices {
 
         blobStream.end(file.buffer);
       } else {
+        console.log('No file provided');
         reject(new Error('No file provided'));
       }
     });
@@ -72,12 +75,26 @@ export class CarsServices {
     return this.carsRepository.update('id', id, { currentMileage });
   };
 
-  updateCarByID = async (id: string, car: CarDTO) => {
+  updateCarByID = async (
+    id: string,
+    car: CarDTO,
+    file: Express.Multer.File | undefined
+  ) => {
+    let signedUrl;
     this.carsRepository.verifyID(id);
+    if (file) {
+      try {
+        signedUrl = await this.uploadFile(file);
+      } catch (e) {
+        console.log(e);
+        throw { message: 'Error uploading file', status: 400 };
+      }
+    }
     const [c, error] = await to(carDTO.parseAsync(car));
     if (error) {
       throw { message: error.message, status: 400 };
     }
+    c.photo = file ?? signedUrl[0];
     return this.carsRepository.update('id', id, c);
   };
 

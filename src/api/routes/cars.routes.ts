@@ -21,7 +21,7 @@ class CarsRouter {
     this.router.get('/:id', this.getCarByID);
     this.router.post('/', multer.single('photo'), this.createCar);
     this.router.delete('/:id', this.deleteCar);
-    this.router.put('/:id', this.updateCar);
+    this.router.put('/:id', multer.single('photo'), this.updateCar);
     this.router.patch('/:id', this.updateCurrentMileage);
     this.router.get('/user/:id', this.getCarsByUserID);
   }
@@ -53,9 +53,6 @@ class CarsRouter {
   createCar = (req: express.Request, res: express.Response) => {
     const carDTO: CarDTO = req.body;
     const file = req.file;
-    if (req.file) {
-      carDTO.photo = req.file.originalname;
-    }
     this.carsService
       .createCar(carDTO, file)
       .then((car) => {
@@ -94,12 +91,20 @@ class CarsRouter {
   updateCar = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
     const carDTO: CarDTO = req.body;
+    try {
+      const file = req?.file;
+    } catch (e) {
+      console.log(e);
+    }
+    const file = req?.file;
+    console.log({ file, carDTO, id });
     this.carsService
-      .updateCarByID(id, carDTO)
+      .updateCarByID(id, carDTO, file)
       .then((car) => {
         return res.status(200).json(car);
       })
       .catch((error: ErrorType) => {
+        console.log(error);
         return res.status(error.status).json(error);
       });
   };

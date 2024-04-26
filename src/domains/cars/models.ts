@@ -7,7 +7,7 @@ export const car = z.object({
   userID: z.string(),
   plate: z.string(),
   model: z.string(),
-  actualKm: z.number(),
+  currentMileage: z.number(),
   photo: z.string().optional(),
 });
 
@@ -15,6 +15,6 @@ export const carDTO = z.object({
   userID: z.string(),
   plate: z.string(),
   model: z.string(),
-  actualKm: z.string().transform((x) => parseInt(x)),
+  currentMileage: z.string().transform((x) => parseInt(x)),
   photo: z.string().optional(),
 });
