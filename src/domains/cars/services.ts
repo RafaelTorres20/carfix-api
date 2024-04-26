@@ -1,4 +1,5 @@
-import { to } from '../../utils/to';import { CarDTO, carDTO, car, Car } from './models';
+import { to } from '../../utils/to';
+import { CarDTO, carDTO, car, Car } from './models';
 import { CarsRepository } from './repository';
 import { v4 as uuid } from 'uuid';
 
@@ -24,6 +25,9 @@ export class CarsServices {
 
   updateCurrentMileage = async (id: string, currentMileage: number) => {
     this.carsRepository.verifyID(id);
+    if (!currentMileage) {
+      throw { message: 'currentMileage is required', status: 400 };
+    }
     return this.carsRepository.update('id', id, { currentMileage });
   };
 

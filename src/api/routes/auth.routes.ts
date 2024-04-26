@@ -24,7 +24,7 @@ class AuthRouter {
     this.authServices
       .login(data.email, data.password)
       .then((token) => {
-        return res.status(200).json({ token });
+        return res.status(200).json(token);
       })
       .catch((error: ErrorType) => {
         return res.status(error.status).json(error);

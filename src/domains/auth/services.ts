@@ -7,7 +7,10 @@ import { JWT } from '../../api/middlewares/jwt';
 
 export class AuthServices implements IAuth {
   constructor(private usersServices: UserService, private jwt: JWT) {}
-  login = async (email: string, password: string): Promise<string> => {
+  login = async (
+    email: string,
+    password: string
+  ): Promise<{ token: string; email: string; id: string; name: string }> => {
     const user = await this.usersServices.findUserByEmail(email);
     const isPasswordCorrect = await this.usersServices.comparePassword(
       password,
@@ -22,9 +25,8 @@ export class AuthServices implements IAuth {
       this.usersServices.updateUserByID(user.id, { ...user, jwt: token })
     );
     if (error) {
-      console.log(error);
       throw { message: 'internal server error', status: 500 };
     }
-    return token;
+    return { token, email: user.email, id: user.id, name: user.name };
   };
 }

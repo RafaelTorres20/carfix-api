@@ -1,4 +1,5 @@
-import { FirebaseError } from 'firebase-admin';import { to } from '../../utils/to';
+import { FirebaseError } from 'firebase-admin';
+import { to } from '../../utils/to';
 import {
   FirebaseResponseFindAll,
   FirestoreResponseCreate,
