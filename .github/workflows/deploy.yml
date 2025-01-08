@@ -21,6 +21,11 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           version: '>= 363.0.0'
+
+      - name: Authenticate Docker to Google Container Registry
+        run: |
+          gcloud auth configure-docker --quiet
+
       - name: Build and push Docker image
         run: |
           docker build -t gcr.io/endless-terra-421507/carfix-api:${{ github.sha }} .
