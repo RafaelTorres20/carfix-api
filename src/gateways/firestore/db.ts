@@ -1,4 +1,4 @@
-import { credential } from 'firebase-admin';
+import { auth, credential } from 'firebase-admin';
 import { initializeApp } from 'firebase-admin/app';
 import { Firestore, getFirestore } from 'firebase-admin/firestore';
 
@@ -16,6 +16,11 @@ export class FirestoreDB {
         databaseURL: 'https://carfix-bd96a.firebaseio.com',
       });
       this._firestoreDB = getFirestore();
+      auth()
+        .listUsers(1)
+        .catch((error) => {
+          console.log('Error initializing Firestore', error);
+        });
     }
     return this._firestoreDB;
   }

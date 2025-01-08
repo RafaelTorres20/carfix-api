@@ -121,6 +121,10 @@ export const carsRouter = () => {
   const storage = new Storage({
     projectId: 'endless-terra-421507',
   });
+  storage.getBuckets()?.catch((e) => {
+    console.log(e);
+    throw { message: 'error: unable to conect to google cloud storage', status: 500 };
+  });
   const carsServices = new CarsServices(carsRepository, storage);
   const router = new CarsRouter(carsServices);
   return router.getRouter();
