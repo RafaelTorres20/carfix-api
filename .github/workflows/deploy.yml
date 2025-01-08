@@ -37,4 +37,5 @@ jobs:
               --image gcr.io/endless-terra-421507/carfix-api:${{ github.sha }} \
               --platform managed \
               --region southamerica-east1 \
-              --allow-unauthenticated
+              --allow-unauthenticated \
+              --set-env-vars JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
