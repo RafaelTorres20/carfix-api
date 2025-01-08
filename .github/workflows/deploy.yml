@@ -24,7 +24,6 @@ jobs:
 
       - name: Authenticate Docker to Google Container Registry
         run: |
-          gcloud auth application-default login
           gcloud auth configure-docker --quiet
 
       - name: Build and push Docker image
