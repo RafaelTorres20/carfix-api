@@ -9,17 +9,14 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: endless-terra-421507
-          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-
-      - name: gcloud auth
-        run: gcloud auth configure-docker
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }} # Certifique-se de que o segredo esteja configurado corretamente
 
       - name: Build and push Docker image
         run: |
