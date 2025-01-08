@@ -11,6 +11,7 @@ export class FirestoreDB {
 
   initOnce() {
     if (!this._firestoreDB) {
+      console.warn({ credential: credential.applicationDefault() });
       initializeApp({
         credential: credential.applicationDefault(),
         databaseURL: 'https://carfix-bd96a.firebaseio.com',
