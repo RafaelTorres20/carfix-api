@@ -1,5 +1,5 @@
-import { auth, credential } from 'firebase-admin';
-import { initializeApp } from 'firebase-admin/app';
+import { auth } from 'firebase-admin';
+import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { Firestore, getFirestore } from 'firebase-admin/firestore';
 
 export class FirestoreDB {
@@ -11,16 +11,15 @@ export class FirestoreDB {
 
   initOnce() {
     if (!this._firestoreDB) {
-      console.warn({ credential: credential.applicationDefault() });
       initializeApp({
-        credential: credential.applicationDefault(),
+        credential: applicationDefault(),
         databaseURL: 'https://carfix-bd96a.firebaseio.com',
       });
       this._firestoreDB = getFirestore();
       auth()
         .listUsers(1)
         .catch((error) => {
-          console.log('Error initializing Firestore', error);
+          console.log(error);
         });
     }
     return this._firestoreDB;
