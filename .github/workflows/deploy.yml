@@ -12,12 +12,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
-          project_id: endless-terra-421507
-          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }} # Certifique-se de que o segredo esteja configurado corretamente
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
       - name: Build and push Docker image
         run: |
           docker build -t gcr.io/endless-terra-421507/carfix-api:${{ github.sha }} .
