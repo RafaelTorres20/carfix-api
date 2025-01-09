@@ -1,16 +1,19 @@
+import { v4 as uuid } from 'uuid';
+
+import { Storage } from '@google-cloud/storage';
+
 import { to } from '../../utils/to';
 import { CarDTO, carDTO } from './models';
 import { CarsRepository } from './repository';
-import { v4 as uuid } from 'uuid';
-import { Storage } from '@google-cloud/storage';
+
 export class CarsServices {
   constructor(private carsRepository: CarsRepository, private storage: Storage) {}
   uploadFile = (file: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const bucket = this.storage.bucket('carfix');
+      const bucket = this.storage?.bucket('carfix');
       if (file?.originalname) {
         const time = new Date().getTime();
-        const blob = bucket.file(time + file.originalname);
+        const blob = bucket?.file(time + file.originalname);
         const blobStream = blob.createWriteStream();
 
         blobStream.on('error', (err) => {

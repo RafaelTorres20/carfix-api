@@ -1,37 +1,46 @@
-import { auth } from 'firebase-admin';
-import { applicationDefault, initializeApp } from 'firebase-admin/app';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { Firestore as AdminFirestore, getFirestore } from 'firebase-admin/firestore';
 
 export class FirestoreDB {
-  private _firestoreDB: Firestore;
+  private _firestoreDB: AdminFirestore;
 
   constructor() {
     this._firestoreDB = this.initOnce();
   }
 
-  initOnce() {
+  initOnce(): AdminFirestore {
+    if (!getApps().length) {
+      initializeApp();
+    }
     if (!this._firestoreDB) {
-      initializeApp({
-        credential: applicationDefault(),
-        databaseURL: 'https://carfix-bd96a.firebaseio.com',
-      });
       this._firestoreDB = getFirestore();
-      auth()
-        .listUsers(1)
-        .catch((error) => {
-          console.log(error);
-        });
+      this._firestoreDB.settings({ databaseId: 'carfix-db' });
     }
     return this._firestoreDB;
   }
 
-  getFirestoreDB() {
+  getFirestoreDB(): AdminFirestore {
     return this._firestoreDB;
   }
 }
 
 const firestore = new FirestoreDB().getFirestoreDB();
 
-export const firestoreDB = () => {
+export const firestoreDB = (): AdminFirestore => {
   return firestore;
 };
+
+// Test Firestore connection
+const testFirestore = async (): Promise<void> => {
+  try {
+    const db = firestoreDB();
+    const testCollection = await db.collection('test').get();
+    console.log(
+      testCollection.empty ? 'No documents found!' : 'Firestore connected successfully!'
+    );
+  } catch (error) {
+    console.error('Firestore connection error:', error);
+  }
+};
+
+testFirestore();

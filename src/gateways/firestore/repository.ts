@@ -1,4 +1,6 @@
 import { FirebaseError } from 'firebase-admin';
+
+import { ErrorType } from '../../errors/types';
 import { to } from '../../utils/to';
 import {
   FirebaseResponseFindAll,
@@ -6,7 +8,6 @@ import {
   FirestoreResponseGet,
   FirestoreResponseUpdate,
 } from './types';
-import { ErrorType } from '../../errors/types';
 
 export class Repository<T extends { [x: string]: any }> {
   constructor(private db: FirebaseFirestore.Firestore, private collection: string) {
