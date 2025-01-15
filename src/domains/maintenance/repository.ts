@@ -10,11 +10,10 @@ export class MaintenanceRepository extends Repository<Maintenance> {
     this.verifyID(id);
     const [data, error] = await to(this.findAllBy('carID', id));
     if (error?.status === 404) {
-      console.log(error);
       throw { message: 'not found', status: error.status };
     }
     if (error) {
-      console.log(error);
+      console.error('Error on getMaintenancesByCarId:', error.message);
       throw { message: 'internal server error', status: 500 };
     }
     return data;

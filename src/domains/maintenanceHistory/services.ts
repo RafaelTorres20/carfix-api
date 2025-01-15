@@ -1,12 +1,9 @@
-import { IMaintenanceHistory } from './interfaces';
-import {
-  MaintenanceHistoryDTO,
-  maintenanceHistoryDTO,
-  MaintenanceHistory,
-} from './models';
-import { MaintenanceHistoryRepository } from './repository';
-import { to } from '../../utils/to';
 import { v4 as uuid } from 'uuid';
+
+import { to } from '../../utils/to';
+import { IMaintenanceHistory } from './interfaces';
+import { MaintenanceHistory, MaintenanceHistoryDTO, maintenanceHistoryDTO } from './models';
+import { MaintenanceHistoryRepository } from './repository';
 
 export class MaintenanceHistoryServices implements IMaintenanceHistory {
   constructor(private maintenanceHistoryRepository: MaintenanceHistoryRepository) {}

@@ -1,6 +1,8 @@
 import express from 'express';
 import Multer from 'multer';
 
+import { Storage } from '@google-cloud/storage';
+
 import { CarDTO } from '../../domains/cars/models';
 import { CarsRepository } from '../../domains/cars/repository';
 import { CarsServices } from '../../domains/cars/services';
@@ -28,6 +30,7 @@ class CarsRouter {
   getCarsByUserID = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
     this.carsService
+
       .getCarsByUserID(id)
       .then((cars) => {
         return res.status(200).json(cars);
@@ -116,14 +119,10 @@ class CarsRouter {
 export const carsRouter = () => {
   const db = firestoreDB();
   const carsRepository = new CarsRepository(db);
-  // const storage = new Storage({
-  //   projectId: 'endless-terra-421507',
-  // });
-  // storage.getBuckets()?.catch((e) => {
-  //   console.log(e);
-  //   throw { message: 'error: unable to conect to google cloud storage', status: 500 };
-  // });
-  const carsServices = new CarsServices(carsRepository, {} as any);
+  const storage = new Storage({
+    projectId: 'endless-terra-421507',
+  });
+  const carsServices = new CarsServices(carsRepository, storage);
   const router = new CarsRouter(carsServices);
   return router.getRouter();
 };

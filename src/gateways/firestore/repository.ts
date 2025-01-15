@@ -3,10 +3,7 @@ import { FirebaseError } from 'firebase-admin';
 import { ErrorType } from '../../errors/types';
 import { to } from '../../utils/to';
 import {
-  FirebaseResponseFindAll,
-  FirestoreResponseCreate,
-  FirestoreResponseGet,
-  FirestoreResponseUpdate,
+    FirebaseResponseFindAll, FirestoreResponseCreate, FirestoreResponseGet, FirestoreResponseUpdate
 } from './types';
 
 export class Repository<T extends { [x: string]: any }> {
@@ -16,15 +13,12 @@ export class Repository<T extends { [x: string]: any }> {
   }
   verifyID(id: string): void {
     if (!id) {
-      console.log('id is required');
       throw { message: 'id is required', status: 400 };
     }
     if (id.length !== 36) {
-      console.log('id is invalid');
       throw { message: 'id is invalid', status: 400 };
     }
     if (typeof id !== 'string') {
-      console.log('id is invalid');
       throw { message: 'id is invalid', status: 400 };
     }
   }
@@ -33,28 +27,24 @@ export class Repository<T extends { [x: string]: any }> {
       this.db.collection(this.collection).add(data)
     );
     if (error !== null) {
-      console.log(error);
+      console.error('Error on repository -> create():', error.message);
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
 
     return { id: newData.id };
   }
   async update(field: string, id: string, data: any): Promise<T> {
-    try {
-      const [updatedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(
-        (
-          await this.db.collection(this.collection).where(field, '==', id).get()
-        ).docs[0].ref.update(data)
-      );
-      if (error) {
-        console.log(error);
-        throw { message: 'internal server error', status: 500 } as ErrorType;
-      }
-      return updatedData as unknown as T;
-    } catch (e) {
-      console.log(e);
+    const [updatedData, error] = await to<FirestoreResponseUpdate, FirebaseError>(
+      (
+        await this.db.collection(this.collection).where(field, '==', id).get()
+      ).docs[0].ref.update(data)
+    );
+    if (error) {
+      console.error('Error on repository -> update():', error.message);
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
+
+    return { id, ...data } as T;
   }
   async delete(field: string, id: string): Promise<FirestoreResponseUpdate> {
     const [deletedData, error] = await to<any, FirebaseError>(
@@ -63,7 +53,7 @@ export class Repository<T extends { [x: string]: any }> {
       ).docs[0]?.ref.delete()
     );
     if (error !== null) {
-      console.log(error);
+      console.error('Error on repository -> delete():', error.message);
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
     return deletedData;
@@ -73,39 +63,38 @@ export class Repository<T extends { [x: string]: any }> {
       this.db.collection(this.collection).doc(id).get()
     );
     if (error !== null) {
-      console.log(error);
+      console.error('Error on repository -> find():', error.message);
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
     if (!data) {
-      console.log('not found');
       throw { message: 'not found', status: 404 } as ErrorType;
     }
     return data.data() as unknown as T;
   }
+
   async findBy(field: string, value: string): Promise<T> {
-    const [user, error] = await to(
+    const [data, error] = await to(
       this.db.collection(this.collection).where(field, '==', value).get()
     );
     if (error) {
-      console.log(error);
+      console.error('Error on repository -> findBy():', error.message);
       throw { message: 'internal server error', status: 500 };
     }
-    if (user.empty) {
-      console.log('not found');
+    if (data.empty) {
       throw { message: 'bad request', status: 400 };
     }
-    return user.docs[0].data() as T;
+    return data.docs[0].data() as T;
   }
+
   async findAllBy(field: string, value: string): Promise<T[]> {
     const [data, error] = await to(
       this.db.collection(this.collection).where(field, '==', value).get()
     );
     if (error) {
-      console.log(error);
+      console.error('Error on repository -> findAllBy():', error.message);
       throw { message: 'internal server error', status: 500 };
     }
     if (data.empty) {
-      console.log('not found');
       throw { message: 'not found', status: 404 };
     }
     const result: T[] = [];
@@ -114,16 +103,16 @@ export class Repository<T extends { [x: string]: any }> {
     });
     return result;
   }
+
   async findAll() {
     const [data, error] = await to<FirebaseResponseFindAll, FirebaseError>(
       this.db.collection(this.collection).get()
     );
     if (error !== null) {
-      console.log(error);
+      console.error('Error on repository -> findAll():', error.message);
       throw { message: 'internal server error', status: 500 } as ErrorType;
     }
     if (!data) {
-      console.log('not found');
       throw { message: 'not found', status: 404 } as ErrorType;
     }
     return data;
@@ -145,11 +134,10 @@ export class Repository<T extends { [x: string]: any }> {
         .get()
     );
     if (error) {
-      console.log(error);
+      console.error('Error on repository -> findAllByDateAndID():', error.message);
       throw { message: 'internal server error', status: 500 };
     }
     if (data.empty) {
-      console.log('not found');
       throw { message: 'not found', status: 404 };
     }
     const result: T[] = [];
